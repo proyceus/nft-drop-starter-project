@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { Program, Provider, web3 } from '@project-serum/anchor';
 import { MintLayout, TOKEN_PROGRAM_ID, Token } from '@solana/spl-token';
@@ -25,6 +25,9 @@ const MAX_SYMBOL_LENGTH = 10;
 const MAX_CREATOR_LEN = 32 + 1 + 1;
 
 const CandyMachine = ({ walletAddress }) => {
+
+  const [machineStats, setMachineStats] = useState(null);
+  const [mints, setMints] = useState([]);
   // Actions
   const fetchHashTable = async (hash, metadataEnabled) => {
     const connection = new web3.Connection(
@@ -291,6 +294,14 @@ const CandyMachine = ({ walletAddress }) => {
       goLiveData * 1000
     ).toGMTString()}`;
 
+    setMachineStats({
+      itemsAvailable,
+      itemsRedeemed,
+      itemsRemaining,
+      goLiveData,
+      goLiveDateTimeString
+    });
+
     console.log({
       itemsAvailable,
       itemsRedeemed,
@@ -301,13 +312,21 @@ const CandyMachine = ({ walletAddress }) => {
   };
 
   return (
-    <div className="machine-container">
-      <p>Drop Date:</p>
-      <p>Items Minted:</p>
-      <button className="cta-button mint-button" onClick={mintToken}>
-        Mint NFT
-      </button>
-    </div>
+
+    machineStats && (
+      <div className="machine-container">
+        <p>Drop Date <br /><br /><span className="time">{machineStats.goLiveDateTimeString}</span></p>
+        <p>Items Minted <br /><br /><span className="items">{machineStats.itemsRedeemed} / {machineStats.itemsAvailable}</span></p>
+        {machineStats.itemsAvailable - machineStats.itemsRedeemed !== 0 ? <button className="cta-button mint-button" onClick={mintToken}>
+          Mint NFT
+        </button> :
+        <button className="cta-button mint-button">
+          SOLD OUT
+        </button>
+        }
+      </div>
+    )
+    
   );
 };
 
