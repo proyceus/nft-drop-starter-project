@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { Program, Provider, web3 } from '@project-serum/anchor';
 import { MintLayout, TOKEN_PROGRAM_ID, Token } from '@solana/spl-token';
@@ -248,6 +248,56 @@ const CandyMachine = ({ walletAddress }) => {
       programId: SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID,
       data: Buffer.from([]),
     });
+  };
+
+  useEffect(() => {
+    getCandyMachineState();
+  }, []);
+
+  const getProvider = () => {
+    const rpcHost = process.env.REACT_APP_SOLANA_RPC_HOST;
+    const connection = new Connection(rpcHost);
+
+    const provider = new Provider(
+      connection,
+      window.solana,
+      opts.preflightCommitment
+    );
+
+    return provider;
+  };
+
+  const getCandyMachineState = async () => {
+    const provider = getProvider();
+
+    //get metadata about your deployed Candy machine program
+    const idl = await Program.fetchIdl(candyMachineProgram, provider);
+
+    //create a program that you can call
+    const program = new Program(idl, candyMachineProgram, provider);
+
+    //fetch the metadata from candy machine
+    const candyMachine = await program.account.candyMachine.fetch(
+      process.env.REACT_APP_CANDY_MACHINE_ID
+    );
+
+    //parse out all metadata and log it
+    const itemsAvailable = candyMachine.data.itemsAvailable.toNumber();
+    const itemsRedeemed = candyMachine.itemsRedeemed.toNumber();
+    const itemsRemaining = itemsAvailable - itemsRedeemed;
+    const goLiveData = candyMachine.data.goLiveDate.toNumber();
+
+    const goLiveDateTimeString = `${new Date(
+      goLiveData * 1000
+    ).toGMTString()}`;
+
+    console.log({
+      itemsAvailable,
+      itemsRedeemed,
+      itemsRemaining,
+      goLiveData,
+      goLiveDateTimeString
+    })
   };
 
   return (
