@@ -1,6 +1,7 @@
 .machine-container {
   display: flex;
   flex-direction: column;
+  align-items: center;
 }
 
 .gif-container {
@@ -30,4 +31,12 @@
   height: 200px;
   border-radius: 10px;
   object-fit: cover;
+}
+
+.items {
+  font-size: 30px;
+}
+
+.time {
+  font-size:30px;
 }
