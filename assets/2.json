@@ -1,0 +1,19 @@
+{
+    "name": "Faces_",
+    "symbol": "FCS",
+    "image": "2.png",
+    "properties": {
+      "files": [
+        {
+          "uri": "2.png",
+          "type": "image/png"
+        }
+      ],
+      "creators": [
+        {
+          "address": "DkzBnsAfZSzdf71PohTKRPLMspUJeAvvMq5VgzohzFzx",
+          "share": 100
+        }
+      ]
+    }
+  }

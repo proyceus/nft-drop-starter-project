@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
 import twitterLogo from './assets/twitter-logo.svg';
 
@@ -6,7 +6,11 @@ import twitterLogo from './assets/twitter-logo.svg';
 const TWITTER_HANDLE = '_buildspace';
 const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
 
+const cmAddress = 'v67nmGe4LJ4o1nQQTudLH6tFDt3brNBAQdpKJPAXvCn';
+
 const App = () => {
+
+  const [walletAddress, setWalletAddress] = useState(null);
 
   const checkIfWalletIsConnected = async () => {
     try {
@@ -19,6 +23,9 @@ const App = () => {
           //connect directly to user wallet
           const response = await solana.connect({ onlyIfTrusted: true });
           console.log("Connected with public key: ", response.publicKey.toString());
+
+          //set user's publicKey as the address in state
+          setWalletAddress(response.publicKey.toString());
         }
       } else {
         alert("Solana object not found! Get a Phantom wallet.");
@@ -27,6 +34,26 @@ const App = () => {
       console.error(err);
     }
   };
+
+  const connectWallet = async () => {
+
+    const { solana } = window;
+
+    if (solana) {
+      const response = await solana.connect();
+      console.log('Connected with Public Key: ', response.publicKey.toString());
+      setWalletAddress(response.publicKey.toString());
+    }
+  };
+
+  const renderNotConnectedContainer = () => (
+    <button
+      className="cta-button connect-wallet-button"
+      onClick={connectWallet}
+      >
+        Connect to Wallet
+      </button>
+  )
 
   useEffect(() => {
     const onLoad = async () => {
@@ -42,6 +69,7 @@ const App = () => {
         <div className="header-container">
           <p className="header">🍭 Candy Drop</p>
           <p className="sub-text">NFT drop machine with fair mint</p>
+          {!walletAddress && renderNotConnectedContainer()}
         </div>
         <div className="footer-container">
           <img alt="Twitter Logo" className="twitter-logo" src={twitterLogo} />
