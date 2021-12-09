@@ -2,12 +2,11 @@ import React, { useEffect, useState } from 'react';
 import './App.css';
 import twitterLogo from './assets/twitter-logo.svg';
 import CandyMachine from './CandyMachine';
+import facesLogo from './assets/mainimg.png';
 
 // Constants
 const TWITTER_HANDLE = '_buildspace';
 const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
-
-const cmAddress = 'v67nmGe4LJ4o1nQQTudLH6tFDt3brNBAQdpKJPAXvCn';
 
 const App = () => {
 
@@ -68,7 +67,8 @@ const App = () => {
     <div className="App">
       <div className="container">
         <div className="header-container">
-          <p className="header">🍭 Candy Drop</p>
+          <img src={facesLogo} alt="face_logo" className="logo_faces" />
+          <p className="header">Faces Drop</p>
           <p className="sub-text">NFT drop machine with fair mint</p>
           {!walletAddress && renderNotConnectedContainer()}
         </div>
