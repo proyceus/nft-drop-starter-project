@@ -69,7 +69,7 @@ const App = () => {
         <div className="header-container">
           <img src={facesLogo} alt="face_logo" className="logo_faces" />
           <p className="header">Faces Drop</p>
-          <p className="sub-text">NFT drop machine with fair mint</p>
+          <p className="sub-text">Face NFTs of random variety</p>
           {!walletAddress && renderNotConnectedContainer()}
         </div>
         {walletAddress && <CandyMachine walletAddress={window.solana} />}

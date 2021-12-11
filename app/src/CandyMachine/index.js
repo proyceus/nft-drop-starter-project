@@ -9,6 +9,7 @@ import {
   TOKEN_METADATA_PROGRAM_ID,
   SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID,
 } from './helpers';
+import CountdownTimer from '../CountdownTimer';
 const {
   metadata: { Metadata, MetadataProgram },
 } = programs;
@@ -28,6 +29,10 @@ const CandyMachine = ({ walletAddress }) => {
 
   const [machineStats, setMachineStats] = useState(null);
   const [mints, setMints] = useState([]);
+
+  const [isMinting, setIsMinting] = useState(false);
+  const [isLoadingMints, setIsLoadingMints] = useState(false);
+
   // Actions
   const fetchHashTable = async (hash, metadataEnabled) => {
     const connection = new web3.Connection(
@@ -112,6 +117,7 @@ const CandyMachine = ({ walletAddress }) => {
 
   const mintToken = async () => {
     try {
+      setIsMinting(true);
       const mint = web3.Keypair.generate();
       const token = await getTokenWallet(
         walletAddress.publicKey,
@@ -191,11 +197,13 @@ const CandyMachine = ({ walletAddress }) => {
         txn,
         async (notification, context) => {
           if (notification.type === 'status') {
-            console.log('Receievd status event');
+            console.log('Receieved status event');
 
             const { result } = notification;
             if (!result.err) {
               console.log('NFT Minted!');
+              setIsMinting(false);
+              await getCandyMachineState();
             }
           }
         },
@@ -203,6 +211,8 @@ const CandyMachine = ({ walletAddress }) => {
       );
     } catch (error) {
       let message = error.msg || 'Minting failed! Please try again!';
+
+      setIsMinting(false);
 
       if (!error.msg) {
         if (error.message.indexOf('0x138')) {
@@ -308,22 +318,75 @@ const CandyMachine = ({ walletAddress }) => {
       itemsRemaining,
       goLiveData,
       goLiveDateTimeString
-    })
+    });
+
+    setIsLoadingMints(true);
+
+    const data = await fetchHashTable(
+      process.env.REACT_APP_CANDY_MACHINE_ID,
+      true
+    );
+
+    if (data.length !== 0) {
+      for (const mint of data) {
+        //get URI
+        const response = await fetch(mint.data.uri);
+        const parse = await response.json();
+        console.log("Past Minted NFT", mint);
+
+        //get image URI
+        if (!mints.find((mint) => mint === parse.image)) {
+          setMints((prevState) => [...prevState, parse.image])
+        }
+      }
+    }
+
+    setIsLoadingMints(false);
   };
+
+  const renderMintedItems = () => (
+    <div className="gift-container">
+      <p className="sub-text">Minted Items</p>
+      <div className="gif-grid">
+        {mints.map((mint) => (
+          <div className="gif-item" key={mint}>
+            <img src={mint} alt={`Minted NFT ${mint}`} />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+
+  const renderDropTimer = () => {
+    const currentDate = new Date();
+    let dropDate = new Date(machineStats.goLiveData * 1000);
+    dropDate = new Date('Wed, 25 Dec 2021 00:12:00 GMT');
+
+    console.log(currentDate, 'current', dropDate, 'dropDate')
+
+    if (currentDate < dropDate) {
+      console.log("Before drop date!");
+      return <CountdownTimer dropDate={dropDate} />;
+    }
+
+    return <p>{`Drop Date: ${machineStats.goLiveDateTimeString}`}</p>
+  }
 
   return (
 
     machineStats && (
       <div className="machine-container">
-        <p>Drop Date <br /><br /><span className="time">{machineStats.goLiveDateTimeString}</span></p>
+        {renderDropTimer()}
         <p>Items Minted <br /><br /><span className="items">{machineStats.itemsRedeemed} / {machineStats.itemsAvailable}</span></p>
-        {machineStats.itemsAvailable - machineStats.itemsRedeemed !== 0 ? <button className="cta-button mint-button" onClick={mintToken}>
+        {machineStats.itemsAvailable - machineStats.itemsRedeemed !== 0 ? <button className="cta-button mint-button" onClick={mintToken} disabled={isMinting}>
           Mint NFT
         </button> :
         <button className="cta-button mint-button">
           SOLD OUT
         </button>
         }
+        {isLoadingMints && <p>LOADING MINTS...</p>}
+        {mints.length > 0 && renderMintedItems()}
       </div>
     )
     
